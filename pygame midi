@@ -1,0 +1,119 @@
+import pygame
+import pygame.midi
+
+pygame.init()
+pygame.midi.init()
+
+width = 1000
+height = 750
+screen = pygame.display.set_mode([width, height])
+pygame.display.set_caption('Jazz Midi Game')
+
+surface = pygame.Surface((width, height), pygame.SRCALPHA)
+timer = pygame.time.Clock()
+fps = 60
+
+active_string = (" ")
+
+#notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+
+
+
+
+
+#level = 0
+
+header_font = pygame.font.Font(None, 50)
+
+
+chord_object = []
+
+
+
+
+
+
+def draw_screen():
+    # Screen design and layout
+    pygame.draw.rect(screen, (32, 42, 68), [0, height - 100, width, 100], 0)
+    pygame.draw.rect(screen, 'white', [0, 0, width, height], 5)
+    pygame.draw.line(screen, 'white', (250, height - 100), (250, height), 2)
+    pygame.draw.line(screen, 'white', (700, height - 100), (700, height), 2)
+    pygame.draw.line(screen, 'white', (0, height - 100), (width, height - 100), 2)
+    pygame.draw.rect(screen, 'black', [0, 0, width, height], 2)
+
+    # Text rendering
+    screen.blit(header_font.render(f'{active_string}', True, 'white'), (270, height - 75))
+
+
+def main():
+    # Dictionary mapping MIDI note numbers to note letters
+    note_mapping = {
+        0: 'C',
+        1: 'C#',
+        2: 'D',
+        3: 'D#',
+        4: 'E',
+        5: 'F',
+        6: 'F#',
+        7: 'G',
+        8: 'G#',
+        9: 'A',
+        10: 'A#',
+        11: 'B'
+    }
+
+
+
+
+
+
+    # Get the default MIDI input device
+    input_id = pygame.midi.get_default_input_id()
+    midi_input = pygame.midi.Input(input_id)
+
+    running = True
+    while running:
+        screen.fill('gray')
+        timer.tick(fps)
+        draw_screen()
+
+        # Event handling
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        # MIDI input handling
+        if midi_input.poll():
+            midi_events = midi_input.read(10)
+            for event in midi_events:
+                # check first object for on/off
+                status_byte = event[0][0]
+
+                # 128 velocity means 
+                if status_byte != 128:
+                    # Extract MIDI note number
+                    midi_note_number = event[0][1]
+
+                    # Convert MIDI note number to note letter
+                    note_letter = note_mapping.get(midi_note_number % 12)
+
+                    # Assign note letter to active string
+                    global active_string
+                    active_string += note_letter
+
+                
+
+
+
+        pygame.display.flip()
+
+    del midi_input
+    pygame.midi.quit()
+
+
+
+
+
+if __name__ == "__main__":
+    main()
